@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:async';
+
+import 'package:webview_flutter/webview_flutter.dart';
 
 import 'search.dart';
 
@@ -57,13 +58,13 @@ class SetAppBar extends StatelessWidget {
               Icons.language,
               semanticLabel: 'filter',
             ),
-//            onPressed: () {
-//              Navigator.of(context).push(MaterialPageRoute(
-//                  builder: (BuildContext context) => MyWebView(
-//                    title: "",
-//                    selectedUrl: "https://www.handong.edu/",
-//                  )));
-//            },
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) => MyWebView(
+                    title: "",
+                    selectedUrl: "https://www.handong.edu/",
+                  )));
+            },
           ),
         ],
         title: Text('DreamCard'),
@@ -139,32 +140,32 @@ class SetAppBar extends StatelessWidget {
   }
 }
 
-//
-//class MyWebView extends StatelessWidget {
-//  final String title;
-//  final String selectedUrl;
-//
-//  final Completer<WebViewController> _controller =
-//  Completer<WebViewController>();
-//
-//  MyWebView({
-//    @required this.title,
-//    @required this.selectedUrl,
-//  });
-//
-//  @override
-//  Widget build(BuildContext context) {
-//    return Scaffold(
-//        appBar: AppBar(
-//          title: Text(title),
-//        ),
-//        body: WebView(
-//          initialUrl: selectedUrl,
-//          javascriptMode: JavascriptMode.unrestricted,
-//          onWebViewCreated: (WebViewController webViewController) {
-//            _controller.complete(webViewController);
-//          },
-//        ));
-//  }
-//}
+
+class MyWebView extends StatelessWidget {
+  final String title;
+  final String selectedUrl;
+
+  final Completer<WebViewController> _controller =
+  Completer<WebViewController>();
+
+  MyWebView({
+    @required this.title,
+    @required this.selectedUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(title),
+        ),
+        body: WebView(
+          initialUrl: selectedUrl,
+          javascriptMode: JavascriptMode.unrestricted,
+          onWebViewCreated: (WebViewController webViewController) {
+            _controller.complete(webViewController);
+          },
+        ));
+  }
+}
 
