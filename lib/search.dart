@@ -246,7 +246,7 @@ class _MyAppState extends State<MyApp> {
             FlatButton(
               child: Text('Search'),
               onPressed: () => Navigator.push(
-                context,MaterialPageRoute(builder: (context)=>SetAppBar()),
+                context,MaterialPageRoute(builder: (context)=>MapHome()),
               ),
             ),
             FlatButton(
