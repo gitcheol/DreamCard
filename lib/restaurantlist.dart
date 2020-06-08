@@ -295,6 +295,7 @@ class MyWebView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          backgroundColor: Colors.lightBlueAccent,
           title: Text(title),
         ),
         body: WebView(
