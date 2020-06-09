@@ -7,6 +7,7 @@ import 'main.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:async';
+import 'package:geoflutterfire/geoflutterfire.dart';
 
 class RestaurantList extends StatelessWidget {
   @override
@@ -42,6 +43,7 @@ class Favorite extends StatefulWidget {
 
 class FavoriteState extends State<Favorite> {
   Firestore firestore=Firestore.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +60,7 @@ class FavoriteState extends State<Favorite> {
   void _settingModalBottomSheet(BuildContext context) async {
     //location, phone_number, URL, restaurant_type, name, opening_hours
     final myController = TextEditingController();
-    final locationController = TextEditingController();
+    //final locationController = TextEditingController();
     final nameController= TextEditingController();
     final phone_numberController= TextEditingController();
     final URLController= TextEditingController();
@@ -103,12 +105,12 @@ class FavoriteState extends State<Favorite> {
                       labelText: 'URL'
                   ),
                 ),
-                TextField(
-                  controller: locationController,
-                  decoration: InputDecoration(
-                      labelText: 'location'
-                  ),
-                ),
+//                TextField(
+//                  controller: locationController,
+//                  decoration: InputDecoration(
+//                      labelText: 'location'
+//                  ),
+//                ),
              ],
             )
           ),
@@ -121,7 +123,7 @@ class FavoriteState extends State<Favorite> {
                 print("Data Add : "+nameController.text);
                 firestore.collection('restaurant').document(nameController.text).setData({
                   'restaurant_type':restaurant_typeController.text,'phone_number':phone_numberController.text,'opening_hours':opening_hoursController.text,
-                  'URL':URLController.text,'location':locationController.text,'name':nameController.text,'like':0,
+                  'URL':URLController.text,'name':nameController.text,'like':0,
                 });
               },
             ),
@@ -245,7 +247,7 @@ class Record {
   final String name;
   final int like;
   final DocumentReference reference;
-  final String location;
+  //final String location;
   final String phone_number;
   final String URL;
   final String restaurand_type;
@@ -259,8 +261,8 @@ class Record {
         phone_number=map['phone_number'],
         URL=map['URL'],
         restaurand_type=map['restaurand_type'],
-        opening_hours=map['opening_hours'],
-        location=map['location'];
+        opening_hours=map['opening_hours'];
+        //location=map['location'];
 
 
 

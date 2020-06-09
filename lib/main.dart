@@ -34,10 +34,17 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Completer<GoogleMapController> _controller = Completer();
-  static const LatLng _center = const LatLng(45.521563, -122.677433);
+  static const LatLng _center = const LatLng(36.081850, 129.397017);
   final Set<Marker> _markers = {};
   LatLng _lastMapPosition = _center;
   MapType _currentMapType = MapType.normal;
+  Firestore firestore=Firestore.instance;
+
+
+
+
+
+
 
   void _onMapTypeButtonPressed() {
     setState(() {
