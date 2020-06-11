@@ -1,17 +1,19 @@
+//import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rxdart/rxdart.dart';
 
 import 'restaurantlist.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'mypage.dart';
 import 'search.dart';
 import 'signin_page.dart';
-import 'marker.dart';
 import 'event.dart';
+import 'extrapage.dart';
 
 void main() => runApp(MapHome());
 
@@ -34,13 +36,38 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Completer<GoogleMapController> _controller = Completer();
-  static const LatLng _center = const LatLng(36.081850, 129.397017);
+  static const LatLng _center = const LatLng(36.078730, 129.392920);
   final Set<Marker> _markers = {};
   LatLng _lastMapPosition = _center;
   MapType _currentMapType = MapType.normal;
-  Firestore firestore=Firestore.instance;
+  GoogleMapController _mapController;
+  TextEditingController _latitudeController, _longitudeController, name_con;
 
 
+  Firestore _firestore = Firestore.instance;
+  Geoflutterfire geo;
+  Stream<List<DocumentSnapshot>> stream;
+  var radius = BehaviorSubject<double>.seeded(1.0);
+  Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _latitudeController = TextEditingController();
+    _longitudeController = TextEditingController();
+    name_con = TextEditingController();
+
+//    geo = Geoflutterfire();
+//    GeoFirePoint center = geo.point(latitude: 36.078730, longitude: 129.392920);
+//    stream = radius.switchMap((rad) {
+//      var collectionReference = _firestore.collection('restaurant');
+////          .where('name', isEqualTo: 'darshan');
+//      return geo.collection(collectionRef: collectionReference).within(
+//          center: center, radius: rad, field: 'location', strictMode: true);
+//    });
+
+  }
 
 
 
@@ -49,25 +76,10 @@ class _MyAppState extends State<MyApp> {
   void _onMapTypeButtonPressed() {
     setState(() {
       _currentMapType = _currentMapType == MapType.normal
-      ? MapType.satellite
-      : MapType.normal;
-      }
+          ? MapType.satellite
+          : MapType.normal;
+    }
     );
-  }
-
-  void _onAddMarkerButtonPressed() {
-    setState(() {
-      _markers.add(Marker(
-        // This marker id can be anything that uniquely identifies each marker.
-        markerId: MarkerId(_lastMapPosition.toString()),
-        position: _lastMapPosition,
-//        infoWindow: InfoWindow(
-//        title: 'Really cool place',
-//        snippet: '5 Star Rating',
-//        )   ,
-        icon: BitmapDescriptor.defaultMarker,
-      ));
-    });
   }
 
   void _onCameraMove(CameraPosition position) {
@@ -75,7 +87,79 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _onMapCreated(GoogleMapController controller) {
-    _controller.complete(controller);
+//    _controller.complete(controller);
+    geo = Geoflutterfire();
+    GeoFirePoint center = geo.point(latitude: 36.078730, longitude: 129.392920);
+//    stream = radius.switchMap((rad) {
+//      var collectionReference = _firestore.collection('restaurant');
+////          .where('name', isEqualTo: 'darshan');
+//      return geo.collection(collectionRef: collectionReference).within(
+//          center: center, radius: rad, field: 'location', strictMode: true);
+//    });
+
+    var collectionReference = _firestore.collection('restaurant');
+    stream = geo.collection(collectionRef: collectionReference).within(
+        center: center, radius: 5, field: 'location', strictMode: true);  // 반경 조절 가능
+    print("here");
+    print(stream);
+    setState(() {
+      _mapController = controller;
+//      _showHome();
+      //start listening after map is created
+      stream.listen((List<DocumentSnapshot> documentList) {
+        print('llllllllllllllllllisten');
+        _updateMarkers(documentList);
+      });
+    });
+  }
+
+  void _addMarker(double lat, double lng, String name, String phone, String url, int like) {
+    double tmp = BitmapDescriptor.hueViolet;
+    if(like > 0)
+      tmp = BitmapDescriptor.hueRed;
+    MarkerId id = MarkerId(lat.toString() + lng.toString());
+    Marker _marker = Marker(
+      markerId: id,
+      position: LatLng(lat, lng),
+      icon: BitmapDescriptor.defaultMarkerWithHue(tmp),
+      infoWindow: InfoWindow(
+          title: '$name',
+          snippet: '$phone',
+          onTap: (){
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) => MyWebView(
+                  title: name,
+                  selectedUrl: url,
+                )));
+          }),
+    );
+    setState(() {
+      markers[id] = _marker;
+    });
+  }
+
+  void _updateMarkers(List<DocumentSnapshot> documentList) {
+//    print("uuuuuuuuuuuuuu");
+    print(documentList.length);
+    documentList.forEach((DocumentSnapshot document) {
+      GeoPoint point = document.data['location']['geopoint'];
+      String name = document.data['name'];
+      String phone = document.data['phone_number'];
+      String url = document.data['URL'];
+      int like = document.data['like'];
+      _addMarker(point.latitude, point.longitude,name,phone,url,like);
+//      print("ppppppppppppppppppppp");
+//      print(point.latitude);
+    });
+  }
+
+  void _addPoint(double lat, double lng, String name) {
+    GeoFirePoint geoFirePoint = geo.point(latitude: lat, longitude: lng);
+    _firestore
+        .collection('restaurant').document(name)
+        .setData({'name': 'random name', 'location': geoFirePoint.data}).then((_) {
+      print('added ${geoFirePoint.hash} successfully');
+    });
   }
 
   @override
@@ -89,7 +173,7 @@ class _MyAppState extends State<MyApp> {
               semanticLabel: 'search',
             ),
             onPressed: () => Navigator.push(
-              context,MaterialPageRoute(builder: (context)=>Search()),
+              context,MaterialPageRoute(builder: (context)=>SearchPage()),
             ),
           ),
         ],
@@ -159,7 +243,7 @@ class _MyAppState extends State<MyApp> {
                     color : Colors.lightBlueAccent),
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MyPage()),
+                  MaterialPageRoute(builder: (context) => ProfilePage()),
                 )
             ),
             ListTile(
@@ -180,11 +264,12 @@ class _MyAppState extends State<MyApp> {
             onMapCreated: _onMapCreated,
             initialCameraPosition: CameraPosition(
               target: _center,
-              zoom: 11.0,
+              zoom: 15.0,
             ),
             mapType: _currentMapType,
-            markers: _markers,
+            markers: Set<Marker>.of(markers.values),
             onCameraMove: _onCameraMove,
+            myLocationEnabled: true,
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -199,14 +284,6 @@ class _MyAppState extends State<MyApp> {
                     backgroundColor: Colors.lightBlueAccent,
                     child: const Icon(Icons.map, size: 36.0),
                   ),
-                  SizedBox(height: 16.0),
-                  FloatingActionButton(
-                    heroTag: null,
-                    onPressed: _onAddMarkerButtonPressed,
-                    materialTapTargetSize: MaterialTapTargetSize.padded,
-                    backgroundColor: Colors.lightBlueAccent,
-                    child: const Icon(Icons.add_location, size: 36.0),
-                  ),
                 ],
               ),
             ),
@@ -216,9 +293,6 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-
-
-
 
 
 //webview
@@ -239,6 +313,7 @@ class MyWebView extends StatelessWidget {
     return Scaffold(
         appBar: AppBar(
           title: Text(title),
+          backgroundColor: Colors.lightBlueAccent,
         ),
         body: WebView(
           initialUrl: selectedUrl,
@@ -249,4 +324,3 @@ class MyWebView extends StatelessWidget {
         ));
   }
 }
-

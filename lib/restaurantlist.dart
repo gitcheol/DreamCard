@@ -143,7 +143,7 @@ class FavoriteState extends State<Favorite> {
   Widget _buildBody(BuildContext context) {
     // TODO: get actual snapshot from Cloud Firestore
     return StreamBuilder<QuerySnapshot>(
-      stream: Firestore.instance.collection('restaurant').snapshots(),
+      stream: Firestore.instance.collection('restaurant').orderBy("name",descending: false).snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return LinearProgressIndicator();
 
@@ -163,7 +163,7 @@ class FavoriteState extends State<Favorite> {
     final record = Record.fromSnapshot(data);
 
     return Padding(
-      key: ValueKey(record.name),
+      key: ValueKey(record.ename),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
         decoration: BoxDecoration(
@@ -179,9 +179,9 @@ class FavoriteState extends State<Favorite> {
               color: record.like.toString()=='0' ? null : Colors.red,
             ),
             onPressed: (){
-              record.like.toString()=='0' ? firestore.collection("restaurant").document(record.name).updateData(
+              record.like.toString()=='0' ? firestore.collection("restaurant").document(record.ename).updateData(
                   {"like": 1}) :
-              firestore.collection("restaurant").document(record.name).updateData(
+              firestore.collection("restaurant").document(record.ename).updateData(
                   {"like": 0});
             },
           ),
@@ -252,6 +252,7 @@ class Record {
   final String URL;
   final String restaurand_type;
   final String opening_hours;
+  final String ename;
 
 
   Record.fromMap(Map<String, dynamic> map, {this.reference})
@@ -261,6 +262,7 @@ class Record {
         phone_number=map['phone_number'],
         URL=map['URL'],
         restaurand_type=map['restaurand_type'],
+        ename=map['ename'],
         opening_hours=map['opening_hours'];
         //location=map['location'];
 
